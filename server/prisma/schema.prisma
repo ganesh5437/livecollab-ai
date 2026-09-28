@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+enum NotificationType {
+  DOCUMENT_SHARED
+  COMMENT_ADDED
+  COMMENT_REPLY
+  MENTION
+  DOCUMENT_EDITED
+  PERMISSION_CHANGED
+  AI_TASK_COMPLETED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String?
+  name         String
+  avatarUrl    String?
+  googleId     String?  @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  documentsOwned   Document[]          @relation("DocumentOwner")
+  permissions      Permission[]
+  comments         Comment[]
+  commentReplies   CommentReply[]
+  versionsCreated  DocumentVersion[]
+  folders          Folder[]
+  notifications    Notification[]
+  refreshTokens    RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model Folder {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    Folder?  @relation("FolderTree", fields: [parentId], references: [id])
+  children  Folder[] @relation("FolderTree")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  documentFolders DocumentFolder[]
+
+  @@map("folders")
+}
+
+model Document {
+  id              String   @id @default(uuid())
+  title           String
+  ownerId         String
+  owner           User     @relation("DocumentOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  currentRevision Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  versions        DocumentVersion[]
+  permissions     Permission[]
+  comments        Comment[]
+  embeddings      Embedding[]
+  documentFolders DocumentFolder[]
+  notifications   Notification[]
+
+  @@map("documents")
+}
+
+model DocumentFolder {
+  id         String   @id @default(uuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  folderId   String
+  folder     Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, folderId])
+  @@map("document_folders")
+}
+
+model DocumentVersion {
+  id            String   @id @default(uuid())
+  documentId    String
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  versionNumber Int
+  snapshot      Bytes
+  description   String?
+  createdById   String
+  createdBy     User     @relation(fields: [createdById], references: [id])
+  createdAt     DateTime @default(now())
+
+  @@unique([documentId, versionNumber])
+  @@map("document_versions")
+}
+
+model Permission {
+  id         String   @id @default(uuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role
+  createdAt  DateTime @default(now())
+
+  @@unique([documentId, userId])
+  @@map("permissions")
+}
+
+model Comment {
+  id              String         @id @default(uuid())
+  documentId      String
+  document        Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  authorId        String
+  author          User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content         String
+  fromPosition    Int
+  toPosition      Int
+  resolved        Boolean        @default(false)
+  parentCommentId String?
+  parent          Comment?       @relation("CommentThread", fields: [parentCommentId], references: [id])
+  children        Comment[]      @relation("CommentThread")
+  replies         CommentReply[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@map("comments")
+}
+
+model CommentReply {
+  id        String   @id @default(uuid())
+  commentId String
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+
+  @@map("comment_replies")
+}
+
+model Embedding {
+  id         String   @id @default(uuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  chunkId    Int
+  chunkText  String
+  revision   Int
+  embedding  String
+  createdAt  DateTime @default(now())
+
+  @@index([documentId, revision])
+  @@map("embeddings")
+}
+
+model Notification {
+  id         String           @id @default(uuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       NotificationType
+  documentId String?
+  document   Document?        @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  message    String
+  read       Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+
+  @@map("notifications")
+}
