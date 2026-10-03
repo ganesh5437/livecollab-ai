@@ -108,13 +108,13 @@ async function retrieveTopChunks(documentId: string, question: string): Promise<
   if (embeddings.length === 0) return [];
 
   const questionVector = embedText(question);
-  const scored = embeddings.map((e) => ({
+  const scored: RagChunk[] = embeddings.map((e: { chunkId: number; chunkText: string; embedding: string }) => ({
     chunkId: e.chunkId,
     chunkText: e.chunkText,
     score: cosineSimilarity(questionVector, deserializeVector(e.embedding)),
   }));
 
-  scored.sort((a, b) => b.score - a.score);
+  scored.sort((a: RagChunk, b: RagChunk) => b.score - a.score);
   return scored.slice(0, TOP_K_CHUNKS);
 }
 

@@ -14,6 +14,9 @@ import notificationRoutes from "./routes/notification.routes";
 export function createApp() {
   const app = express();
 
+  // Render/Vercel sit behind a proxy; trust it so client IPs (rate limiting) and HTTPS are read correctly.
+  app.set("trust proxy", 1);
+
   app.use(
     pinoHttp({
       genReqId: (req) => (req.headers["x-request-id"] as string) ?? randomUUID(),

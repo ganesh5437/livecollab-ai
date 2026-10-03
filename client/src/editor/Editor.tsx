@@ -1,7 +1,6 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Collaboration from "@tiptap/extension-collaboration";
-import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
 import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
 
@@ -18,7 +17,6 @@ export default function Editor({ ydoc, provider, onTextChange, onSelectionChange
       extensions: [
         StarterKit.configure({ history: false }),
         Collaboration.configure({ document: ydoc }),
-        CollaborationCursor.configure({ provider }),
       ],
       editorProps: {
         attributes: {

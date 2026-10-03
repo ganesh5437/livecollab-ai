@@ -13,6 +13,11 @@ jobs:
     defaults:
       run:
         working-directory: server
+    env:
+      # Dummy values so the app's config loads in CI (no real secrets needed for tests).
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ci
+      JWT_ACCESS_SECRET: ci-access-secret
+      JWT_REFRESH_SECRET: ci-refresh-secret
     steps:
       - uses: actions/checkout@v4
 

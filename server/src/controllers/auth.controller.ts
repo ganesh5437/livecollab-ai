@@ -7,8 +7,10 @@ import { env } from "../config/env";
 
 const REFRESH_COOKIE_OPTS = {
   httpOnly: true,
+  // In production the client (Vercel) and API (Render) are on different domains,
+  // so the refresh cookie must be SameSite=None + Secure to be sent cross-site.
   secure: env.NODE_ENV === "production",
-  sameSite: "lax" as const,
+  sameSite: (env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
   path: "/auth",
   maxAge: 30 * 24 * 60 * 60 * 1000,
 };

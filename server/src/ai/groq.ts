@@ -29,7 +29,7 @@ export async function callGroq(
     throw new Error(`Groq API error (${res.status}): ${body}`);
   }
 
-  const data = await res.json();
+  const data = (await res.json()) as any;
   return data.choices?.[0]?.message?.content ?? "";
 }
 
