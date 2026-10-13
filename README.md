@@ -1,5 +1,7 @@
 # LiveCollab AI
 
+![CI](https://github.com/ganesh5437/livecollab-ai/actions/workflows/ci.yml/badge.svg)
+
 Real-time collaborative document workspace (Notion/Google-Docs style) with a built-in AI assistant —
 summarization, RAG Q&A with citations, inline autocomplete, threaded comments, and notifications.
 
