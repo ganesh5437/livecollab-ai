@@ -34,6 +34,7 @@ export function useCollab(documentId: string, accessToken: string, user: { id: s
 
     const onAwarenessChange = () => {
       const states = Array.from(wsProvider.awareness.getStates().values());
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
       setPeers(states.map((s: any) => s.user).filter(Boolean));
     };
     wsProvider.awareness.on("change", onAwarenessChange);

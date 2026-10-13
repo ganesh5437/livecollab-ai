@@ -15,7 +15,7 @@ export default function Editor({ ydoc, provider, onTextChange, onSelectionChange
   const editor = useEditor(
     {
       extensions: [
-        StarterKit.configure({ history: false }),
+        StarterKit.configure({ undoRedo: false }),
         Collaboration.configure({ document: ydoc }),
       ],
       editorProps: {
